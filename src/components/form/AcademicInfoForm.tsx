@@ -22,9 +22,10 @@ export default function AcademicInfoForm() {
       education: [
         {
           universityName: "",
+          city: "",
           region: "",
           country: "",
-          degreeType: "",
+          levelOfStudy: "",
           major: "",
           gpa: "",
           startDate: "",
@@ -37,6 +38,7 @@ export default function AcademicInfoForm() {
 
   const { control, handleSubmit, register, setValue, formState } = form;
   const { errors, isSubmitting } = formState;
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "education",
@@ -44,7 +46,7 @@ export default function AcademicInfoForm() {
 
   const onSubmit = async (data: AcademicInfoFormValues) => {
     console.log("Academic info submitted:", data);
-    // TODO: save to Supabase later
+    // TODO: Save to Supabase
   };
 
   return (
@@ -53,31 +55,30 @@ export default function AcademicInfoForm() {
       <div>
         <h1 className="text-2xl font-semibold">Academic Background</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Add details of your university or college education. You can add more
-          than one institution if applicable.
+          Add your post-secondary education details. You can include more than
+          one institution if applicable.
         </p>
       </div>
 
       {fields.map((field, index) => (
         <div
           key={field.id}
-          className="relative border rounded-lg p-4 space-y-4 bg-muted/20"
+          className="relative border rounded-lg p-5 space-y-5 bg-muted/20"
         >
           {/* Delete button */}
-          <div className="absolute top-0 -right-10">
-            {fields.length > 1 && (
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                onClick={() => remove(index)}
-              >
-                <Trash2 className="h-4 w-4 text-red-500" />
-              </Button>
-            )}
-          </div>
+          {fields.length > 1 && (
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              onClick={() => remove(index)}
+              className="absolute top-2 -right-10"
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+          )}
 
-          {/* University */}
+          {/* University Name */}
           <div className="grid gap-2">
             <Label htmlFor={`universityName-${index}`}>University Name *</Label>
             <Input
@@ -92,8 +93,22 @@ export default function AcademicInfoForm() {
             )}
           </div>
 
-          {/* Region / Country / Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* City & Region */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor={`city-${index}`}>City *</Label>
+              <Input
+                id={`city-${index}`}
+                {...register(`education.${index}.city`)}
+                placeholder="e.g. Accra"
+              />
+              {errors.education?.[index]?.city && (
+                <p className="text-xs text-red-500">
+                  {errors.education[index]?.city?.message}
+                </p>
+              )}
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor={`region-${index}`}>Region *</Label>
               <Input
@@ -101,17 +116,31 @@ export default function AcademicInfoForm() {
                 {...register(`education.${index}.region`)}
                 placeholder="e.g. Greater Accra"
               />
+              {errors.education?.[index]?.region && (
+                <p className="text-xs text-red-500">
+                  {errors.education[index]?.region?.message}
+                </p>
+              )}
             </div>
+          </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor={`country-${index}`}>Country *</Label>
-              <Input
-                id={`country-${index}`}
-                {...register(`education.${index}.country`)}
-                placeholder="e.g. Ghana"
-              />
-            </div>
+          {/* Country */}
+          <div className="grid gap-2">
+            <Label htmlFor={`country-${index}`}>Country *</Label>
+            <Input
+              id={`country-${index}`}
+              {...register(`education.${index}.country`)}
+              placeholder="e.g. Ghana"
+            />
+            {errors.education?.[index]?.country && (
+              <p className="text-xs text-red-500">
+                {errors.education[index]?.country?.message}
+              </p>
+            )}
+          </div>
 
+          {/* Start / End Dates */}
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor={`startDate-${index}`}>Start Date *</Label>
               <Input
@@ -119,6 +148,11 @@ export default function AcademicInfoForm() {
                 type="date"
                 {...register(`education.${index}.startDate`)}
               />
+              {errors.education?.[index]?.startDate && (
+                <p className="text-xs text-red-500">
+                  {errors.education[index]?.startDate?.message}
+                </p>
+              )}
             </div>
 
             <div className="grid gap-2">
@@ -128,19 +162,24 @@ export default function AcademicInfoForm() {
                 type="date"
                 {...register(`education.${index}.endDate`)}
               />
+              {errors.education?.[index]?.endDate && (
+                <p className="text-xs text-red-500">
+                  {errors.education[index]?.endDate?.message}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Degree Type */}
+          {/* Level of Study */}
           <div className="grid gap-2">
-            <Label htmlFor={`degreeType-${index}`}>Degree Type *</Label>
+            <Label htmlFor={`levelOfStudy-${index}`}>Level of Study *</Label>
             <Select
               onValueChange={(value) =>
-                setValue(`education.${index}.degreeType`, value)
+                setValue(`education.${index}.levelOfStudy`, value)
               }
             >
-              <SelectTrigger id={`degreeType-${index}`}>
-                <SelectValue placeholder="Select degree type" />
+              <SelectTrigger id={`levelOfStudy-${index}`}>
+                <SelectValue placeholder="Select level of study" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="bachelor">Bachelor’s</SelectItem>
@@ -152,9 +191,9 @@ export default function AcademicInfoForm() {
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
-            {errors.education?.[index]?.degreeType && (
+            {errors.education?.[index]?.levelOfStudy && (
               <p className="text-xs text-red-500">
-                {errors.education[index]?.degreeType?.message}
+                {errors.education[index]?.levelOfStudy?.message}
               </p>
             )}
           </div>
@@ -201,16 +240,17 @@ export default function AcademicInfoForm() {
         </div>
       ))}
 
-      {/* Add more schools button */}
+      {/* Add More Button */}
       <Button
         type="button"
         variant="outline"
         onClick={() =>
           append({
             universityName: "",
+            city: "",
             region: "",
             country: "",
-            degreeType: "",
+            levelOfStudy: "",
             major: "",
             gpa: "",
             startDate: "",
@@ -225,7 +265,7 @@ export default function AcademicInfoForm() {
 
       {/* Submit */}
       <div className="pt-4 flex justify-end">
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" size={"lg"} disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Save & Continue"}
         </Button>
       </div>
