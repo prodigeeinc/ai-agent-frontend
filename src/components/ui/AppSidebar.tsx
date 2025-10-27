@@ -8,7 +8,7 @@ const navItems = [
   { label: "Personal Information", href: "/profile/create/personal-info" },
   { label: "Academic Information", href: "/profile/create/academic-info" },
   { label: "Employment Information", href: "/profile/create/employment-info" },
-  { label: "Document Upload", href: "/profile/create/transcript" },
+  { label: "Document Upload", href: "/profile/create/docs" },
   { label: "Review", href: "/profile/create/review" },
 ];
 
