@@ -62,6 +62,18 @@ export const employmentInfoSchema = z.object({
   ),
 });
 
+export const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+});
+
+export const signupSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export type SignupFormValues = z.infer<typeof signupSchema>;
+export type LoginFormValues = z.infer<typeof loginSchema>;
 export type EmploymentInfoFormValues = z.infer<typeof employmentInfoSchema>;
 export type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
 export type AcademicInfoFormValues = z.infer<typeof academicInfoSchema>;
