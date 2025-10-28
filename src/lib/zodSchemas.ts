@@ -10,7 +10,6 @@ export const personalInfoSchema = z.object({
   countryOfResidence: z.string().min(1, "Country of residence is required"),
   addressStreet: z.string().min(1, "Street address is required"),
   city: z.string().min(1, "City is required"),
-  region: z.string().min(1, "Region/State is required"),
   email: z.string().email("Invalid email"),
   phone: z.string().min(5, "Phone number is required"),
 });
@@ -21,7 +20,6 @@ export const academicInfoSchema = z.object({
       .object({
         universityName: z.string().min(1, "University name is required"),
         city: z.string().min(1, "City is required"),
-        region: z.string().min(1, "Region is required"),
         country: z.string().min(1, "Country is required"),
         levelOfStudy: z.string().min(1, "Level of study is required"),
         major: z.string().min(1, "Degree name or major is required"),

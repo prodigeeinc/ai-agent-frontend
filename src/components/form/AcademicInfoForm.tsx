@@ -23,7 +23,6 @@ export default function AcademicInfoForm() {
         {
           universityName: "",
           city: "",
-          region: "",
           country: "",
           levelOfStudy: "",
           major: "",
@@ -93,7 +92,7 @@ export default function AcademicInfoForm() {
             )}
           </div>
 
-          {/* City & Region */}
+          {/* City & Country */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor={`city-${index}`}>City *</Label>
@@ -110,33 +109,18 @@ export default function AcademicInfoForm() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor={`region-${index}`}>Region *</Label>
+              <Label htmlFor={`country-${index}`}>Country *</Label>
               <Input
-                id={`region-${index}`}
-                {...register(`education.${index}.region`)}
-                placeholder="e.g. Greater Accra"
+                id={`country-${index}`}
+                {...register(`education.${index}.country`)}
+                placeholder="e.g. Ghana"
               />
-              {errors.education?.[index]?.region && (
+              {errors.education?.[index]?.country && (
                 <p className="text-xs text-red-500">
-                  {errors.education[index]?.region?.message}
+                  {errors.education[index]?.country?.message}
                 </p>
               )}
             </div>
-          </div>
-
-          {/* Country */}
-          <div className="grid gap-2">
-            <Label htmlFor={`country-${index}`}>Country *</Label>
-            <Input
-              id={`country-${index}`}
-              {...register(`education.${index}.country`)}
-              placeholder="e.g. Ghana"
-            />
-            {errors.education?.[index]?.country && (
-              <p className="text-xs text-red-500">
-                {errors.education[index]?.country?.message}
-              </p>
-            )}
           </div>
 
           {/* Start / End Dates */}
@@ -248,7 +232,6 @@ export default function AcademicInfoForm() {
           append({
             universityName: "",
             city: "",
-            region: "",
             country: "",
             levelOfStudy: "",
             major: "",
@@ -265,7 +248,7 @@ export default function AcademicInfoForm() {
 
       {/* Submit */}
       <div className="pt-4 flex justify-end">
-        <Button type="submit" size={"lg"} disabled={isSubmitting}>
+        <Button type="submit" size="lg" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Save & Continue"}
         </Button>
       </div>

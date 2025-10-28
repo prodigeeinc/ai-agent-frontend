@@ -27,7 +27,6 @@ export default function PersonalInfoForm() {
       countryOfResidence: "",
       addressStreet: "",
       city: "",
-      region: "",
       email: "",
       phone: "",
     },
@@ -38,7 +37,6 @@ export default function PersonalInfoForm() {
 
   const onSubmit = async (data: PersonalInfoFormValues) => {
     console.log("Personal Info submitted:", data);
-    // TODO: Save to backend later
   };
 
   return (
@@ -55,6 +53,7 @@ export default function PersonalInfoForm() {
       {/* Personal Details */}
       <section className="space-y-4">
         <h2 className="text-lg font-medium">Personal Details</h2>
+
         <div className="grid gap-2">
           <Label htmlFor="firstName">First Name *</Label>
           <Input
@@ -66,6 +65,7 @@ export default function PersonalInfoForm() {
             <p className="text-xs text-red-500">{errors.firstName.message}</p>
           )}
         </div>
+
         <div className="grid gap-2">
           <Label htmlFor="lastName">Last Name *</Label>
           <Input
@@ -77,6 +77,7 @@ export default function PersonalInfoForm() {
             <p className="text-xs text-red-500">{errors.lastName.message}</p>
           )}
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           <div className="grid gap-2">
             <Label htmlFor="dateOfBirth">Date of Birth *</Label>
@@ -135,38 +136,26 @@ export default function PersonalInfoForm() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="addressStreet">Street Address *</Label>
-            <Input
-              id="addressStreet"
-              {...register("addressStreet")}
-              placeholder="e.g. 123 Ring Road"
-            />
-            {errors.addressStreet && (
-              <p className="text-xs text-red-500">
-                {errors.addressStreet.message}
-              </p>
-            )}
-          </div>
+        <div className="grid gap-2">
+          <Label htmlFor="addressStreet">Street Address *</Label>
+          <Input
+            id="addressStreet"
+            {...register("addressStreet")}
+            placeholder="e.g. 123 Ring Road"
+          />
+          {errors.addressStreet && (
+            <p className="text-xs text-red-500">
+              {errors.addressStreet.message}
+            </p>
+          )}
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label htmlFor="city">City *</Label>
             <Input id="city" {...register("city")} placeholder="e.g. Accra" />
             {errors.city && (
               <p className="text-xs text-red-500">{errors.city.message}</p>
-            )}
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="region">Region/State *</Label>
-            <Input
-              id="region"
-              {...register("region")}
-              placeholder="e.g. Greater Accra"
-            />
-            {errors.region && (
-              <p className="text-xs text-red-500">{errors.region.message}</p>
             )}
           </div>
 
@@ -184,6 +173,7 @@ export default function PersonalInfoForm() {
             )}
           </div>
         </div>
+
         <div className="grid gap-2">
           <Label htmlFor="birthCountry">Birth Country *</Label>
           <Input
@@ -213,7 +203,7 @@ export default function PersonalInfoForm() {
 
       {/* Submit */}
       <div className="pt-4 flex justify-end">
-        <Button type="submit" size={"lg"} disabled={isSubmitting}>
+        <Button type="submit" size="lg" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Save & Continue"}
         </Button>
       </div>
