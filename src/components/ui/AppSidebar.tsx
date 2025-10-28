@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
 const navItems = [
+  { label: "Introduction", href: "/profile/create" },
   { label: "Personal Information", href: "/profile/create/personal-info" },
   { label: "Academic Information", href: "/profile/create/academic-info" },
   { label: "Employment Information", href: "/profile/create/employment-info" },
@@ -26,9 +27,7 @@ export default function AppSidebar() {
               href={item.href}
               className={clsx(
                 "block rounded-md px-3 py-2 text-sm font-medium",
-                active
-                  ? "bg-gray-100 text-gray-900"
-                  : "hover:underline"
+                active ? "bg-gray-100 text-gray-900" : "hover:underline"
               )}
             >
               {item.label}
