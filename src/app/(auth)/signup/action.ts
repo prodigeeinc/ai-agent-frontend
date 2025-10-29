@@ -1,10 +1,10 @@
 "use server";
 
+import { createClient } from "@/lib/superbase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/superbase/server";
 
-export async function login(formData: FormData) {
+export async function signup(formData: FormData) {
   const supabase = await createClient();
 
   const data = {
@@ -12,10 +12,13 @@ export async function login(formData: FormData) {
     password: formData.get("password") as string,
   };
 
-  const { error } = await supabase.auth.signInWithPassword(data);
+  const { error } = await supabase.auth.signUp(data);
 
-  if (error) return { error: error.message };
+  if (error) {
+    // Return only if signup fails
+    return { error: error.message };
+  }
 
   revalidatePath("/", "layout");
-  redirect("/profile");
+  redirect("/profile/create");
 }

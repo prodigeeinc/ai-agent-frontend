@@ -2,10 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
+import { useState } from "react";
 import { signupSchema, type SignupFormValues } from "@/lib/zodSchemas";
-import { createClient } from "@/lib/superbase/client";
+import { signup } from "@/app/(auth)/signup/action";
+
 import {
   Form,
   FormControl,
@@ -16,12 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
 export function SignupForm() {
-  const router = useRouter();
-  const supabase = createClient();
-  const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
 
   const form = useForm<SignupFormValues>({
@@ -32,19 +28,32 @@ export function SignupForm() {
     },
   });
 
+  const {
+    handleSubmit,
+    control,
+    formState: { isSubmitting },
+  } = form;
+
   const onSubmit = async (values: SignupFormValues) => {
-    setLoading(true);
     setGlobalError(null);
 
-    const { error } = await supabase.auth.signUp(values);
+    try {
+      const formData = new FormData();
+      formData.append("email", values.email);
+      formData.append("password", values.password);
 
-    if (error) {
-      setGlobalError(error.message);
-    } else {
-      router.push("/profile/create");
+      const result = await signup(formData);
+
+      if (result?.error) {
+        setGlobalError(result.error);
+        return;
+      }
+
+      // The server action will handle redirect on success
+    } catch (err) {
+      console.error(err);
+      setGlobalError("An unexpected error occurred. Please try again.");
     }
-
-    setLoading(false);
   };
 
   return (
@@ -58,15 +67,20 @@ export function SignupForm() {
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <FormField
-            control={form.control}
+            control={control}
             name="email"
             render={({ field }) => (
               <FormItem>
-                <Label>Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <FormControl>
-                  <Input placeholder="you@example.com" {...field} />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -74,21 +88,26 @@ export function SignupForm() {
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="password"
             render={({ field }) => (
               <FormItem>
-                <Label>Password</Label>
+                <Label htmlFor="password">Password</Label>
                 <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Signing up..." : "Sign up"}
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? "Signing up..." : "Sign up"}
           </Button>
         </form>
       </Form>
