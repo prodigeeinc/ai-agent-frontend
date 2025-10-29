@@ -42,7 +42,7 @@ export function LoginForm() {
     if (error) {
       setGlobalError(error.message);
     } else {
-      router.push("/profile/create");
+      router.push("/profile");
     }
 
     setLoading(false);
