@@ -53,7 +53,8 @@ export const employmentInfoSchema = z.object({
       .refine(
         (data) =>
           data.currently_working ||
-          new Date(data.end_date!) > new Date(data.start_date),
+          (data.end_date &&
+            new Date(data.end_date) > new Date(data.start_date)),
         {
           message: "End date must be after start date",
           path: ["end_date"],
