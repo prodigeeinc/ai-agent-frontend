@@ -23,7 +23,7 @@ export async function saveAcademicInfo(values: AcademicInfoFormValues) {
   }
 
   const academicEntries = parsed.data.education.map((edu) => ({
-    user_id: user.id,
+    profile_id: user.id,
     university_name: edu.university_name,
     city: edu.city,
     country: edu.country,
@@ -37,7 +37,7 @@ export async function saveAcademicInfo(values: AcademicInfoFormValues) {
   }));
 
   // Clear existing records for this user first (optional but clean UX)
-  await supabase.from("academic_info").delete().eq("user_id", user.id);
+  await supabase.from("academic_records").delete().eq("profile_id", user.id);
 
   // Insert new data
   const { error } = await supabase
