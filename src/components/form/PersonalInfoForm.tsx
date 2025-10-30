@@ -13,19 +13,20 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { savePersonalInfo } from "@/app/profile/create/personal-info/action";
 
 export default function PersonalInfoForm() {
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      first_name: "",
+      last_name: "",
       gender: undefined,
-      dateOfBirth: "",
-      birthCountry: "",
+      date_of_birth: "",
+      birth_country: "",
       citizenship: "",
-      countryOfResidence: "",
-      addressStreet: "",
+      country_of_residence: "",
+      address_street: "",
       city: "",
       email: "",
       phone: "",
@@ -36,7 +37,17 @@ export default function PersonalInfoForm() {
   const { errors, isSubmitting } = formState;
 
   const onSubmit = async (data: PersonalInfoFormValues) => {
-    console.log("Personal Info submitted:", data);
+    try {
+      const result = await savePersonalInfo(data);
+      if (result?.error) {
+        console.error(result);
+        // Optionally show toast error
+      }
+      // redirect or toast
+      console.log("Employment info saved!");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -55,36 +66,40 @@ export default function PersonalInfoForm() {
         <h2 className="text-lg font-medium">Personal Details</h2>
 
         <div className="grid gap-2">
-          <Label htmlFor="firstName">First Name *</Label>
+          <Label htmlFor="first_name">First Name *</Label>
           <Input
-            id="firstName"
-            {...register("firstName")}
+            id="first_name"
+            {...register("first_name")}
             placeholder="e.g. Sarah"
           />
-          {errors.firstName && (
-            <p className="text-xs text-red-500">{errors.firstName.message}</p>
+          {errors.first_name && (
+            <p className="text-xs text-red-500">{errors.first_name.message}</p>
           )}
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="lastName">Last Name *</Label>
+          <Label htmlFor="last_name">Last Name *</Label>
           <Input
-            id="lastName"
-            {...register("lastName")}
+            id="last_name"
+            {...register("last_name")}
             placeholder="e.g. Mensah"
           />
-          {errors.lastName && (
-            <p className="text-xs text-red-500">{errors.lastName.message}</p>
+          {errors.last_name && (
+            <p className="text-xs text-red-500">{errors.last_name.message}</p>
           )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           <div className="grid gap-2">
-            <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-            <Input id="dateOfBirth" type="date" {...register("dateOfBirth")} />
-            {errors.dateOfBirth && (
+            <Label htmlFor="date_of_birth">Date of Birth *</Label>
+            <Input
+              id="date_of_birth"
+              type="date"
+              {...register("date_of_birth")}
+            />
+            {errors.date_of_birth && (
               <p className="text-xs text-red-500">
-                {errors.dateOfBirth.message}
+                {errors.date_of_birth.message}
               </p>
             )}
           </div>
@@ -137,15 +152,15 @@ export default function PersonalInfoForm() {
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="addressStreet">Street Address *</Label>
+          <Label htmlFor="address_street">Street Address *</Label>
           <Input
-            id="addressStreet"
-            {...register("addressStreet")}
+            id="address_street"
+            {...register("address_street")}
             placeholder="e.g. 123 Ring Road"
           />
-          {errors.addressStreet && (
+          {errors.address_street && (
             <p className="text-xs text-red-500">
-              {errors.addressStreet.message}
+              {errors.address_street.message}
             </p>
           )}
         </div>
@@ -160,30 +175,30 @@ export default function PersonalInfoForm() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="countryOfResidence">Country of Residence *</Label>
+            <Label htmlFor="country_of_residence">Country of Residence *</Label>
             <Input
-              id="countryOfResidence"
-              {...register("countryOfResidence")}
+              id="country_of_residence"
+              {...register("country_of_residence")}
               placeholder="e.g. Ghana"
             />
-            {errors.countryOfResidence && (
+            {errors.country_of_residence && (
               <p className="text-xs text-red-500">
-                {errors.countryOfResidence.message}
+                {errors.country_of_residence.message}
               </p>
             )}
           </div>
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="birthCountry">Birth Country *</Label>
+          <Label htmlFor="birth_country">Birth Country *</Label>
           <Input
-            id="birthCountry"
-            {...register("birthCountry")}
+            id="birth_country"
+            {...register("birth_country")}
             placeholder="e.g. Ghana"
           />
-          {errors.birthCountry && (
+          {errors.birth_country && (
             <p className="text-xs text-red-500">
-              {errors.birthCountry.message}
+              {errors.birth_country.message}
             </p>
           )}
         </div>

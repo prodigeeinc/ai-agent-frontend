@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Plus } from "lucide-react";
+import { saveEmploymentInfo } from "@/app/profile/create/employment-info/actions";
 
 export default function EmploymentInfoForm() {
   const form = useForm<EmploymentInfoFormValues>({
@@ -19,13 +20,13 @@ export default function EmploymentInfoForm() {
     defaultValues: {
       experience: [
         {
-          companyName: "",
-          positionTitle: "",
+          company_name: "",
+          position_title: "",
           city: "",
           country: "",
-          startDate: "",
-          endDate: "",
-          currentlyWorking: false,
+          start_date: "",
+          end_date: "",
+          currently_working: false,
           responsibilities: "",
         },
       ],
@@ -40,8 +41,17 @@ export default function EmploymentInfoForm() {
   });
 
   const onSubmit = async (data: EmploymentInfoFormValues) => {
-    console.log("Employment info submitted:", data);
-    // TODO: Save to Supabase
+    try {
+      const result = await saveEmploymentInfo(data);
+      if (result?.error) {
+        console.error(result);
+        // Optionally show toast error
+      }
+      // redirect or toast
+      console.log("Employment info saved!");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -55,7 +65,9 @@ export default function EmploymentInfoForm() {
       </div>
 
       {fields.map((field, index) => {
-        const currentlyWorking = watch(`experience.${index}.currentlyWorking`);
+        const currently_working = watch(
+          `experience.${index}.currently_working`
+        );
 
         return (
           <div
@@ -76,32 +88,32 @@ export default function EmploymentInfoForm() {
 
             {/* Company Name */}
             <div className="grid gap-2">
-              <Label htmlFor={`companyName-${index}`}>Company Name *</Label>
+              <Label htmlFor={`company_name-${index}`}>Company Name *</Label>
               <Input
-                id={`companyName-${index}`}
-                {...register(`experience.${index}.companyName`)}
+                id={`company_name-${index}`}
+                {...register(`experience.${index}.company_name`)}
                 placeholder="e.g. Prodigee"
               />
-              {errors.experience?.[index]?.companyName && (
+              {errors.experience?.[index]?.company_name && (
                 <p className="text-xs text-red-500">
-                  {errors.experience[index]?.companyName?.message}
+                  {errors.experience[index]?.company_name?.message}
                 </p>
               )}
             </div>
 
             {/* Position */}
             <div className="grid gap-2">
-              <Label htmlFor={`positionTitle-${index}`}>
+              <Label htmlFor={`position_title-${index}`}>
                 Position / Title *
               </Label>
               <Input
-                id={`positionTitle-${index}`}
-                {...register(`experience.${index}.positionTitle`)}
+                id={`position_title-${index}`}
+                {...register(`experience.${index}.position_title`)}
                 placeholder="e.g. Software Engineer"
               />
-              {errors.experience?.[index]?.positionTitle && (
+              {errors.experience?.[index]?.position_title && (
                 <p className="text-xs text-red-500">
-                  {errors.experience[index]?.positionTitle?.message}
+                  {errors.experience[index]?.position_title?.message}
                 </p>
               )}
             </div>
@@ -139,30 +151,30 @@ export default function EmploymentInfoForm() {
             {/* Dates + Checkbox */}
             <div className="grid md:grid-cols-2 gap-4 items-center">
               <div className="grid gap-2">
-                <Label htmlFor={`startDate-${index}`}>Start Date *</Label>
+                <Label htmlFor={`start_date-${index}`}>Start Date *</Label>
                 <Input
-                  id={`startDate-${index}`}
+                  id={`start_date-${index}`}
                   type="date"
-                  {...register(`experience.${index}.startDate`)}
+                  {...register(`experience.${index}.start_date`)}
                 />
-                {errors.experience?.[index]?.startDate && (
+                {errors.experience?.[index]?.start_date && (
                   <p className="text-xs text-red-500">
-                    {errors.experience[index]?.startDate?.message}
+                    {errors.experience[index]?.start_date?.message}
                   </p>
                 )}
               </div>
 
-              {!currentlyWorking && (
+              {!currently_working && (
                 <div className="grid gap-2">
-                  <Label htmlFor={`endDate-${index}`}>End Date *</Label>
+                  <Label htmlFor={`end_date-${index}`}>End Date *</Label>
                   <Input
-                    id={`endDate-${index}`}
+                    id={`end_date-${index}`}
                     type="date"
-                    {...register(`experience.${index}.endDate`)}
+                    {...register(`experience.${index}.end_date`)}
                   />
-                  {errors.experience?.[index]?.endDate && (
+                  {errors.experience?.[index]?.end_date && (
                     <p className="text-xs text-red-500">
-                      {errors.experience[index]?.endDate?.message}
+                      {errors.experience[index]?.end_date?.message}
                     </p>
                   )}
                 </div>
@@ -170,13 +182,13 @@ export default function EmploymentInfoForm() {
 
               <div className="flex items-center gap-2 mt-2">
                 <Checkbox
-                  id={`currentlyWorking-${index}`}
-                  checked={currentlyWorking}
+                  id={`currently_working-${index}`}
+                  checked={currently_working}
                   onCheckedChange={(checked) =>
-                    setValue(`experience.${index}.currentlyWorking`, !!checked)
+                    setValue(`experience.${index}.currently_working`, !!checked)
                   }
                 />
-                <Label htmlFor={`currentlyWorking-${index}`}>
+                <Label htmlFor={`currently_working-${index}`}>
                   I currently work here
                 </Label>
               </div>
@@ -208,13 +220,13 @@ export default function EmploymentInfoForm() {
         variant="outline"
         onClick={() =>
           append({
-            companyName: "",
-            positionTitle: "",
+            company_name: "",
+            position_title: "",
             city: "",
             country: "",
-            startDate: "",
-            endDate: "",
-            currentlyWorking: false,
+            start_date: "",
+            end_date: "",
+            currently_working: false,
             responsibilities: "",
           })
         }

@@ -15,20 +15,22 @@ import {
 } from "@/components/ui/select";
 import { Trash2, Plus } from "lucide-react";
 
+import { saveAcademicInfo } from "@/app/profile/create/academic-info/actions";
+
 export default function AcademicInfoForm() {
   const form = useForm<AcademicInfoFormValues>({
     resolver: zodResolver(academicInfoSchema),
     defaultValues: {
       education: [
         {
-          universityName: "",
+          university_name: "",
           city: "",
           country: "",
-          levelOfStudy: "",
+          level_of_study: "",
           major: "",
           gpa: "",
-          startDate: "",
-          endDate: "",
+          start_date: "",
+          end_date: "",
           honors: "",
         },
       ],
@@ -44,8 +46,17 @@ export default function AcademicInfoForm() {
   });
 
   const onSubmit = async (data: AcademicInfoFormValues) => {
-    console.log("Academic info submitted:", data);
-    // TODO: Save to Supabase
+    try {
+      const result = await saveAcademicInfo(data);
+      if (result?.error) {
+        console.error(result);
+        // Optionally show toast error
+      }
+      // redirect or toast
+      console.log("Employment info saved!");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -79,15 +90,17 @@ export default function AcademicInfoForm() {
 
           {/* University Name */}
           <div className="grid gap-2">
-            <Label htmlFor={`universityName-${index}`}>University Name *</Label>
+            <Label htmlFor={`university_name-${index}`}>
+              University Name *
+            </Label>
             <Input
-              id={`universityName-${index}`}
-              {...register(`education.${index}.universityName`)}
+              id={`university_name-${index}`}
+              {...register(`education.${index}.university_name`)}
               placeholder="e.g. University of Ghana"
             />
-            {errors.education?.[index]?.universityName && (
+            {errors.education?.[index]?.university_name && (
               <p className="text-xs text-red-500">
-                {errors.education[index]?.universityName?.message}
+                {errors.education[index]?.university_name?.message}
               </p>
             )}
           </div>
@@ -126,29 +139,29 @@ export default function AcademicInfoForm() {
           {/* Start / End Dates */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor={`startDate-${index}`}>Start Date *</Label>
+              <Label htmlFor={`start_date-${index}`}>Start Date *</Label>
               <Input
-                id={`startDate-${index}`}
+                id={`start_date-${index}`}
                 type="date"
-                {...register(`education.${index}.startDate`)}
+                {...register(`education.${index}.start_date`)}
               />
-              {errors.education?.[index]?.startDate && (
+              {errors.education?.[index]?.start_date && (
                 <p className="text-xs text-red-500">
-                  {errors.education[index]?.startDate?.message}
+                  {errors.education[index]?.start_date?.message}
                 </p>
               )}
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor={`endDate-${index}`}>End Date *</Label>
+              <Label htmlFor={`end_date-${index}`}>End Date *</Label>
               <Input
-                id={`endDate-${index}`}
+                id={`end_date-${index}`}
                 type="date"
-                {...register(`education.${index}.endDate`)}
+                {...register(`education.${index}.end_date`)}
               />
-              {errors.education?.[index]?.endDate && (
+              {errors.education?.[index]?.end_date && (
                 <p className="text-xs text-red-500">
-                  {errors.education[index]?.endDate?.message}
+                  {errors.education[index]?.end_date?.message}
                 </p>
               )}
             </div>
@@ -156,13 +169,13 @@ export default function AcademicInfoForm() {
 
           {/* Level of Study */}
           <div className="grid gap-2">
-            <Label htmlFor={`levelOfStudy-${index}`}>Level of Study *</Label>
+            <Label htmlFor={`level_of_study-${index}`}>Level of Study *</Label>
             <Select
               onValueChange={(value) =>
-                setValue(`education.${index}.levelOfStudy`, value)
+                setValue(`education.${index}.level_of_study`, value)
               }
             >
-              <SelectTrigger id={`levelOfStudy-${index}`}>
+              <SelectTrigger id={`level_of_study-${index}`}>
                 <SelectValue placeholder="Select level of study" />
               </SelectTrigger>
               <SelectContent>
@@ -175,9 +188,9 @@ export default function AcademicInfoForm() {
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
-            {errors.education?.[index]?.levelOfStudy && (
+            {errors.education?.[index]?.level_of_study && (
               <p className="text-xs text-red-500">
-                {errors.education[index]?.levelOfStudy?.message}
+                {errors.education[index]?.level_of_study?.message}
               </p>
             )}
           </div>
@@ -230,14 +243,14 @@ export default function AcademicInfoForm() {
         variant="outline"
         onClick={() =>
           append({
-            universityName: "",
+            university_name: "",
             city: "",
             country: "",
-            levelOfStudy: "",
+            level_of_study: "",
             major: "",
             gpa: "",
-            startDate: "",
-            endDate: "",
+            start_date: "",
+            end_date: "",
             honors: "",
           })
         }
