@@ -15,6 +15,7 @@ import {
   uploadDocument,
   deleteDocument,
 } from "@/app/profile/create/docs/actions";
+import { toast } from "sonner";
 
 registerPlugin(FilePondPluginFileValidateType);
 
@@ -72,14 +73,17 @@ export default function DocumentsForm() {
 
   // 📤 Upload file to Supabase
   async function handleUpload(file: File, category: string) {
+    toast.loading(`Uploading ${file.name}...`); // show loader toast
     setUploading(true);
+
     const result = await uploadDocument(file, category);
     setUploading(false);
+    toast.dismiss(); // remove the loading toast
 
     if (result?.error) {
-      alert(`❌ ${result.error}`);
+      toast.error(`❌ ${result.error}`);
     } else {
-      alert(`✅ ${file.name} uploaded successfully!`);
+      toast.success(`✅ ${file.name} uploaded successfully!`);
       console.log("✅ Uploaded:", category, result);
     }
   }
@@ -90,10 +94,11 @@ export default function DocumentsForm() {
     if (!confirmDelete) return;
 
     const result = await deleteDocument(file.name, category);
+
     if (result?.error) {
-      alert(`❌ Failed to delete: ${result.error}`);
+      toast.error(`❌ Failed to delete: ${result.error}`);
     } else {
-      alert(`🗑️ ${file.name} deleted successfully.`);
+      toast.success(`🗑️ ${file.name} deleted successfully.`);
     }
   }
 
