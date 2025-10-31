@@ -1,54 +1,65 @@
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { FilePond, registerPlugin } from "react-filepond";
+import "filepond/dist/filepond.min.css";
+import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
+import { useRouter } from "next/navigation";
+import { uploadDocument } from "@/app/profile/create/docs/actions";
 
-// Dummy academic data (matches your academic form structure)
-const academicData = [
-  {
-    universityName: "University of Ghana",
-    city: "Accra",
-    country: "Ghana",
-    levelOfStudy: "bachelor",
-    major: "Computer Science",
-    gpa: "3.8",
-    startDate: "2018-09-01",
-    endDate: "2022-07-30",
-    honors: "First Class Honors",
-  },
-  {
-    universityName: "Ashesi University",
-    city: "Berekuso",
-    country: "Ghana",
-    levelOfStudy: "master",
-    major: "Data Science",
-    gpa: "3.9",
-    startDate: "2023-01-01",
-    endDate: "2026-05-15",
-    honors: "",
-  },
-];
+registerPlugin(FilePondPluginFileValidateType);
 
-// Zod schema
+// ✅ Schema
 const documentsSchema = z.object({
-  transcripts: z.array(z.any().optional()).optional(),
-  certificates: z.array(z.any().optional()).optional(),
+  transcripts: z.array(z.any()).optional(),
+  certificates: z.array(z.any()).optional(),
   resume: z.any().optional(),
-  recommendationLetters: z.array(z.any().optional()).optional(),
+  recommendationLetters: z.array(z.any()).optional(),
   personalStatement: z.any().optional(),
-  supportingDocs: z.array(z.any().optional()).optional(),
-  miscellaneous: z.array(z.any().optional()).optional(),
+  supportingDocs: z.array(z.any()).optional(),
+  miscellaneous: z.array(z.any()).optional(),
 });
 
 type DocumentsFormValues = z.infer<typeof documentsSchema>;
 
+// ✅ Dummy academic data (simulate your academic info)
+const academicData = [
+  {
+    university_name: "University of Ghana",
+    city: "Accra",
+    country: "Ghana",
+    level_of_study: "bachelor",
+    major: "Computer Science",
+    gpa: "3.8",
+    start_date: "2018-09-01",
+    end_date: "2022-07-30",
+    honors: "First Class Honors",
+  },
+  {
+    university_name: "Ashesi University",
+    city: "Berekuso",
+    country: "Ghana",
+    level_of_study: "master",
+    major: "Data Science",
+    gpa: "3.9",
+    start_date: "2023-01-01",
+    end_date: "2026-05-15",
+    honors: "",
+  },
+];
+
 export default function DocumentsForm() {
-  const form = useForm<DocumentsFormValues>({
+  const {
+    handleSubmit,
+    setValue,
+    formState: { isSubmitting },
+  } = useForm<DocumentsFormValues>({
     resolver: zodResolver(documentsSchema),
     defaultValues: {
       transcripts: [],
@@ -61,159 +72,170 @@ export default function DocumentsForm() {
     },
   });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = form;
+  const router = useRouter();
+  const [uploading, setUploading] = useState(false);
 
-  const onSubmit = (data: DocumentsFormValues) => {
-    console.log("Uploaded documents:", data);
-    // TODO: Handle file upload or link to Supabase Storage later
-  };
-
-  // Helper — check if the school is completed
   const isCompleted = (endDate: string) => new Date(endDate) < new Date();
 
+  // 📤 Helper to upload each file to Supabase immediately
+  async function handleUpload(file: File, category: string) {
+    setUploading(true);
+    const result = await uploadDocument(file, category);
+    setUploading(false);
+
+    if (result?.error) {
+      alert(`❌ ${result.error}`);
+    } else {
+      console.log("✅ Uploaded:", category, result);
+    }
+  }
+
+  const onSubmit = async () => {
+    router.push("/profile/create/review");
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="px-6 grid gap-10">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="px-6 py-8 space-y-10 max-w-3xl mx-auto"
+    >
       <div>
         <h1 className="text-2xl font-semibold">Upload Documents</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Upload transcripts, certificates, and other supporting documents to
-          complete your profile. All uploads are optional but recommended.
+          complete your profile. Files are uploaded automatically when selected.
         </p>
       </div>
 
-      {/* Transcripts */}
-      <div className="space-y-4">
+      {/* Academic Transcripts */}
+      <section className="space-y-4">
         <h2 className="text-lg font-medium">Academic Transcripts</h2>
-        <p className="text-sm text-muted-foreground">
-          Upload official transcripts for each institution listed in your
-          academic background.
-        </p>
-
         {academicData.map((school, i) => (
           <div key={i} className="grid gap-2">
-            <Label htmlFor={`transcript-${i}`}>
-              {school.universityName} Transcript
-            </Label>
-            <Input
-              id={`transcript-${i}`}
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              {...register(`transcripts.${i}`)}
+            <Label>{school.university_name} Transcript</Label>
+            <FilePond
+              name={`transcript-${i}`}
+              allowMultiple={false}
+              acceptedFileTypes={["application/pdf", "image/*"]}
+              onupdatefiles={(files) => {
+                const file = files[0]?.file;
+                if (file) handleUpload(file as File, "transcript");
+              }}
             />
           </div>
         ))}
-      </div>
+      </section>
 
-      {/* Certificates (only if completed) */}
-      <div className="space-y-4">
+      {/* Certificates */}
+      <section className="space-y-4">
         <h2 className="text-lg font-medium">Degree Certificates</h2>
-        <p className="text-sm text-muted-foreground">
-          Upload certificates for completed programs only.
-        </p>
-
         {academicData
-          .filter((school) => isCompleted(school.endDate))
+          .filter((school) => isCompleted(school.end_date))
           .map((school, i) => (
             <div key={i} className="grid gap-2">
-              <Label htmlFor={`certificate-${i}`}>
-                {school.universityName} Certificate
-              </Label>
-              <Input
-                id={`certificate-${i}`}
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                {...register(`certificates.${i}`)}
+              <Label>{school.university_name} Certificate</Label>
+              <FilePond
+                name={`certificate-${i}`}
+                allowMultiple={false}
+                acceptedFileTypes={["application/pdf", "image/*"]}
+                onupdatefiles={(files) => {
+                  const file = files[0]?.file;
+                  if (file) handleUpload(file as File, "certificate");
+                }}
               />
             </div>
           ))}
-      </div>
+      </section>
 
-      {/* Resume / CV */}
-      <div className="grid gap-2">
-        <Label htmlFor="resume">Resume / CV</Label>
-        <p className="text-sm text-muted-foreground">
-          Upload your latest professional CV or résumé in PDF format.
-        </p>
-        <Input
-          id="resume"
-          type="file"
-          accept=".pdf,.doc,.docx"
-          {...register("resume")}
+      {/* Resume */}
+      <section className="space-y-2">
+        <Label>Resume / CV</Label>
+        <FilePond
+          name="resume"
+          allowMultiple={false}
+          acceptedFileTypes={[
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          ]}
+          onupdatefiles={(files) => {
+            const file = files[0]?.file;
+            if (file) handleUpload(file as File, "resume");
+          }}
         />
-      </div>
+      </section>
 
       {/* Recommendation Letters */}
-      <div className="grid gap-2">
-        <Label htmlFor="recommendationLetters">Recommendation Letters</Label>
-        <p className="text-sm text-muted-foreground">
-          You can upload up to three recommendation letters from academic or
-          professional references.
-        </p>
-        <Input
-          id="recommendationLetters"
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          multiple
-          {...register("recommendationLetters")}
+      <section className="space-y-2">
+        <Label>Recommendation Letters</Label>
+        <FilePond
+          name="recommendationLetters"
+          allowMultiple={true}
+          maxFiles={3}
+          acceptedFileTypes={["application/pdf", "image/*"]}
+          onupdatefiles={(files) => {
+            files.forEach((f) =>
+              handleUpload(f.file as File, "recommendation_letter")
+            );
+          }}
         />
-      </div>
+      </section>
 
       {/* Personal Statement */}
-      <div className="grid gap-2">
-        <Label htmlFor="personalStatement">Personal Statement / Essay</Label>
-        <p className="text-sm text-muted-foreground">
-          Upload your statement of purpose or motivation letter (PDF or Word).
-        </p>
-        <Input
-          id="personalStatement"
-          type="file"
-          accept=".pdf,.doc,.docx"
-          {...register("personalStatement")}
+      <section className="space-y-2">
+        <Label>Personal Statement / Essay</Label>
+        <FilePond
+          name="personalStatement"
+          allowMultiple={false}
+          acceptedFileTypes={[
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          ]}
+          onupdatefiles={(files) => {
+            const file = files[0]?.file;
+            if (file) handleUpload(file as File, "personal_statement");
+          }}
         />
-      </div>
+      </section>
 
-      {/* Supporting Documents */}
-      <div className="grid gap-2">
-        <Label htmlFor="supportingDocs">Supporting Documents</Label>
-        <p className="text-sm text-muted-foreground">
-          Upload any other documents that support your application (e.g.,
-          awards, test scores, certificates).
-        </p>
-        <Input
-          id="supportingDocs"
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          multiple
-          {...register("supportingDocs")}
+      {/* Supporting Docs */}
+      <section className="space-y-2">
+        <Label>Supporting Documents</Label>
+        <FilePond
+          name="supportingDocs"
+          allowMultiple={true}
+          acceptedFileTypes={["application/pdf", "image/*"]}
+          onupdatefiles={(files) => {
+            files.forEach((f) =>
+              handleUpload(f.file as File, "supporting_document")
+            );
+          }}
         />
-      </div>
+      </section>
 
       {/* Miscellaneous */}
-      <div className="grid gap-2">
-        <Label htmlFor="miscellaneous">Miscellaneous Documents</Label>
-        <p className="text-sm text-muted-foreground">
-          Upload any additional documents not listed above.
-        </p>
-        <Input
-          id="miscellaneous"
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-          multiple
-          {...register("miscellaneous")}
+      <section className="space-y-2">
+        <Label>Miscellaneous Documents</Label>
+        <FilePond
+          name="miscellaneous"
+          allowMultiple={true}
+          acceptedFileTypes={[
+            "application/pdf",
+            "image/*",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          ]}
+          onupdatefiles={(files) => {
+            files.forEach((f) => handleUpload(f.file as File, "miscellaneous"));
+          }}
         />
-      </div>
+      </section>
 
       {/* Submit */}
       <div className="pt-4 flex justify-end gap-4">
         <Link
           href={isSubmitting ? "#" : "/profile/create/employment-info"}
-          onClick={(e) => {
-            if (isSubmitting) e.preventDefault();
-          }}
           className={`px-4 py-2 rounded ${
             isSubmitting ? "pointer-events-none opacity-50" : "hover:underline"
           }`}
@@ -221,8 +243,8 @@ export default function DocumentsForm() {
           Back
         </Link>
 
-        <Button type="submit" size={"lg"} disabled={isSubmitting}>
-          {isSubmitting ? "Uploading..." : "Save & Continue"}
+        <Button type="submit" size={"lg"} disabled={uploading || isSubmitting}>
+          {uploading ? "Uploading..." : "Save & Continue"}
         </Button>
       </div>
     </form>
