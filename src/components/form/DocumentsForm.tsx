@@ -16,11 +16,11 @@ import {
   deleteDocument,
 } from "@/app/profile/create/docs/actions";
 import { toast } from "sonner";
-
 import {
   academicInfoSchema,
   type AcademicInfoFormValues,
 } from "@/lib/zodSchemas";
+import { Trash2, FileText, Image } from "lucide-react";
 
 registerPlugin(FilePondPluginFileValidateType);
 
@@ -39,9 +39,20 @@ type DocumentsFormValues = z.infer<typeof documentsSchema>;
 
 type DocumentsFormProps = {
   academicInfo: z.infer<typeof academicInfoSchema>["education"];
+  documents: Array<{
+    id: string;
+    category: string;
+    file_name: string;
+    publicUrl: string;
+    file_type: string;
+    file_size: number;
+  }>;
 };
 
-export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
+export default function DocumentsForm({
+  academicInfo,
+  documents,
+}: DocumentsFormProps) {
   const {
     handleSubmit,
     formState: { isSubmitting },
@@ -54,39 +65,98 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
 
   const isCompleted = (endDate: string) => new Date(endDate) < new Date();
 
+  // Group documents by category
+  function getDocsByCategory(category: string) {
+    return documents.filter((doc) => doc.category === category);
+  }
+
+  // 📏 Format file size
+  function formatFileSize(bytes: number) {
+    if (bytes < 1024) return `${bytes} B`;
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    return `${(kb / 1024).toFixed(1)} MB`;
+  }
+
   // 📤 Upload file to Supabase
   async function handleUpload(file: File, category: string) {
-    toast.loading(`Uploading ${file.name}...`); // show loader toast
+    toast.loading(`Uploading ${file.name}...`);
     setUploading(true);
 
     const result = await uploadDocument(file, category);
     setUploading(false);
-    toast.dismiss(); // remove the loading toast
+    toast.dismiss();
 
     if (result?.error) {
       toast.error(`❌ ${result.error}`);
     } else {
       toast.success(`✅ ${file.name} uploaded successfully!`);
-      console.log("✅ Uploaded:", category, result);
+      router.refresh(); // reload to show new file preview
     }
   }
 
   // 🗑️ Delete file from Supabase
-  async function handleRemove(file: File, category: string) {
-    const confirmDelete = confirm(`Do you want to delete "${file.name}"?`);
+  async function handleDelete(fileName: string, category: string) {
+    const confirmDelete = confirm(`Do you want to delete "${fileName}"?`);
     if (!confirmDelete) return;
 
-    const result = await deleteDocument(file.name, category);
+    const result = await deleteDocument(fileName, category);
 
     if (result?.error) {
       toast.error(`❌ Failed to delete: ${result.error}`);
     } else {
-      toast.success(`🗑️ ${file.name} deleted successfully.`);
+      toast.success(`🗑️ ${fileName} deleted successfully.`);
+      router.refresh(); // reload after deletion
     }
   }
 
   const onSubmit = async () => {
     router.push("/profile/create/review");
+  };
+
+  // ✅ Reusable preview section
+  const ExistingDocs = ({ category }: { category: string }) => {
+    const docs = getDocsByCategory(category);
+    if (!docs.length) return null;
+
+    return (
+      <div className="flex flex-wrap gap-3 mb-3">
+        {docs.map((doc) => (
+          <div
+            key={doc.id}
+            className="border rounded-lg p-3 flex items-center justify-between w-full sm:w-auto sm:min-w-[250px]"
+          >
+            <div className="flex items-center gap-2 truncate">
+              {doc.file_type.startsWith("image/") ? (
+                <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-600">
+                  <Image className="w-5 h-5" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-600">
+                  <FileText className="w-5 h-5" />
+                </div>
+              )}
+              <div className="flex flex-col truncate">
+                <span className="text-sm font-medium truncate max-w-[140px]">
+                  {doc.file_name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {formatFileSize(doc.file_size)}
+                </span>
+              </div>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDelete(doc.file_name, doc.category)}
+            >
+              <Trash2 className="w-4 h-4 text-red-500" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -105,6 +175,8 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
       {/* 📚 Transcripts */}
       <section className="space-y-4">
         <h2 className="text-lg font-medium">Academic Transcripts</h2>
+        <ExistingDocs category="transcript" />
+
         {academicInfo.map((school, i) => (
           <div key={i} className="grid gap-2">
             <Label>{school.university_name} Transcript</Label>
@@ -118,7 +190,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
               }}
               onremovefile={(_error, fileItem) => {
                 if (fileItem?.file)
-                  handleRemove(fileItem.file as File, "transcript");
+                  handleDelete(fileItem.file.name, "transcript");
               }}
             />
           </div>
@@ -128,6 +200,8 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
       {/* 🎓 Certificates */}
       <section className="space-y-4">
         <h2 className="text-lg font-medium">Degree Certificates</h2>
+        <ExistingDocs category="certificate" />
+
         {academicInfo
           .filter((school) => isCompleted(school.end_date))
           .map((school, i) => (
@@ -143,7 +217,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
                 }}
                 onremovefile={(_error, fileItem) => {
                   if (fileItem?.file)
-                    handleRemove(fileItem.file as File, "certificate");
+                    handleDelete(fileItem.file.name, "certificate");
                 }}
               />
             </div>
@@ -153,6 +227,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
       {/* 🧾 Resume */}
       <section className="space-y-2">
         <Label>Resume / CV</Label>
+        <ExistingDocs category="resume" />
         <FilePond
           name="resume"
           allowMultiple={false}
@@ -165,7 +240,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
             if (fileItem?.file) handleUpload(fileItem.file as File, "resume");
           }}
           onremovefile={(_error, fileItem) => {
-            if (fileItem?.file) handleRemove(fileItem.file as File, "resume");
+            if (fileItem?.file) handleDelete(fileItem.file.name, "resume");
           }}
         />
       </section>
@@ -173,6 +248,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
       {/* ✉️ Recommendation Letters */}
       <section className="space-y-2">
         <Label>Recommendation Letters</Label>
+        <ExistingDocs category="recommendation_letter" />
         <FilePond
           name="recommendationLetters"
           allowMultiple={true}
@@ -184,7 +260,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
           }}
           onremovefile={(_error, fileItem) => {
             if (fileItem?.file)
-              handleRemove(fileItem.file as File, "recommendation_letter");
+              handleDelete(fileItem.file.name, "recommendation_letter");
           }}
         />
       </section>
@@ -192,6 +268,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
       {/* 📝 Personal Statement */}
       <section className="space-y-2">
         <Label>Personal Statement / Essay</Label>
+        <ExistingDocs category="personal_statement" />
         <FilePond
           name="personalStatement"
           allowMultiple={false}
@@ -206,7 +283,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
           }}
           onremovefile={(_error, fileItem) => {
             if (fileItem?.file)
-              handleRemove(fileItem.file as File, "personal_statement");
+              handleDelete(fileItem.file.name, "personal_statement");
           }}
         />
       </section>
@@ -214,6 +291,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
       {/* 📎 Supporting Documents */}
       <section className="space-y-2">
         <Label>Supporting Documents</Label>
+        <ExistingDocs category="supporting_document" />
         <FilePond
           name="supportingDocs"
           allowMultiple={true}
@@ -224,7 +302,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
           }}
           onremovefile={(_error, fileItem) => {
             if (fileItem?.file)
-              handleRemove(fileItem.file as File, "supporting_document");
+              handleDelete(fileItem.file.name, "supporting_document");
           }}
         />
       </section>
@@ -232,6 +310,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
       {/* 📂 Miscellaneous */}
       <section className="space-y-2">
         <Label>Miscellaneous Documents</Label>
+        <ExistingDocs category="miscellaneous" />
         <FilePond
           name="miscellaneous"
           allowMultiple={true}
@@ -247,7 +326,7 @@ export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
           }}
           onremovefile={(_error, fileItem) => {
             if (fileItem?.file)
-              handleRemove(fileItem.file as File, "miscellaneous");
+              handleDelete(fileItem.file.name, "miscellaneous");
           }}
         />
       </section>

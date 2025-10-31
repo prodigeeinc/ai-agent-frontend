@@ -89,7 +89,16 @@ export async function getDocuments() {
     return [];
   }
 
-  return data || [];
+  // 🔗 append public URL for each file
+  const docsWithUrls =
+    data?.map((doc) => {
+      const { data: urlData } = supabase.storage
+        .from("documents")
+        .getPublicUrl(doc.file_path);
+      return { ...doc, publicUrl: urlData.publicUrl };
+    }) ?? [];
+
+  return docsWithUrls;
 }
 
 /**
