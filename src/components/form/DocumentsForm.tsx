@@ -11,11 +11,14 @@ import { FilePond, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import { useRouter } from "next/navigation";
-import { uploadDocument } from "@/app/profile/create/docs/actions";
+import {
+  uploadDocument,
+  deleteDocument,
+} from "@/app/profile/create/docs/actions";
 
 registerPlugin(FilePondPluginFileValidateType);
 
-// ✅ Schema
+// ✅ Validation schema
 const documentsSchema = z.object({
   transcripts: z.array(z.any()).optional(),
   certificates: z.array(z.any()).optional(),
@@ -28,7 +31,7 @@ const documentsSchema = z.object({
 
 type DocumentsFormValues = z.infer<typeof documentsSchema>;
 
-// ✅ Dummy academic data (simulate your academic info)
+// ✅ Sample academic data (replace later with actual DB data)
 const academicData = [
   {
     university_name: "University of Ghana",
@@ -57,19 +60,9 @@ const academicData = [
 export default function DocumentsForm() {
   const {
     handleSubmit,
-    setValue,
     formState: { isSubmitting },
   } = useForm<DocumentsFormValues>({
     resolver: zodResolver(documentsSchema),
-    defaultValues: {
-      transcripts: [],
-      certificates: [],
-      resume: undefined,
-      recommendationLetters: [],
-      personalStatement: undefined,
-      supportingDocs: [],
-      miscellaneous: [],
-    },
   });
 
   const router = useRouter();
@@ -77,7 +70,7 @@ export default function DocumentsForm() {
 
   const isCompleted = (endDate: string) => new Date(endDate) < new Date();
 
-  // 📤 Helper to upload each file to Supabase immediately
+  // 📤 Upload file to Supabase
   async function handleUpload(file: File, category: string) {
     setUploading(true);
     const result = await uploadDocument(file, category);
@@ -86,7 +79,21 @@ export default function DocumentsForm() {
     if (result?.error) {
       alert(`❌ ${result.error}`);
     } else {
+      alert(`✅ ${file.name} uploaded successfully!`);
       console.log("✅ Uploaded:", category, result);
+    }
+  }
+
+  // 🗑️ Delete file from Supabase
+  async function handleRemove(file: File, category: string) {
+    const confirmDelete = confirm(`Do you want to delete "${file.name}"?`);
+    if (!confirmDelete) return;
+
+    const result = await deleteDocument(file.name, category);
+    if (result?.error) {
+      alert(`❌ Failed to delete: ${result.error}`);
+    } else {
+      alert(`🗑️ ${file.name} deleted successfully.`);
     }
   }
 
@@ -107,7 +114,7 @@ export default function DocumentsForm() {
         </p>
       </div>
 
-      {/* Academic Transcripts */}
+      {/* 📚 Transcripts */}
       <section className="space-y-4">
         <h2 className="text-lg font-medium">Academic Transcripts</h2>
         {academicData.map((school, i) => (
@@ -117,16 +124,20 @@ export default function DocumentsForm() {
               name={`transcript-${i}`}
               allowMultiple={false}
               acceptedFileTypes={["application/pdf", "image/*"]}
-              onupdatefiles={(files) => {
-                const file = files[0]?.file;
-                if (file) handleUpload(file as File, "transcript");
+              onaddfile={(_error, fileItem) => {
+                if (fileItem?.file)
+                  handleUpload(fileItem.file as File, "transcript");
+              }}
+              onremovefile={(_error, fileItem) => {
+                if (fileItem?.file)
+                  handleRemove(fileItem.file as File, "transcript");
               }}
             />
           </div>
         ))}
       </section>
 
-      {/* Certificates */}
+      {/* 🎓 Certificates */}
       <section className="space-y-4">
         <h2 className="text-lg font-medium">Degree Certificates</h2>
         {academicData
@@ -138,16 +149,20 @@ export default function DocumentsForm() {
                 name={`certificate-${i}`}
                 allowMultiple={false}
                 acceptedFileTypes={["application/pdf", "image/*"]}
-                onupdatefiles={(files) => {
-                  const file = files[0]?.file;
-                  if (file) handleUpload(file as File, "certificate");
+                onaddfile={(_error, fileItem) => {
+                  if (fileItem?.file)
+                    handleUpload(fileItem.file as File, "certificate");
+                }}
+                onremovefile={(_error, fileItem) => {
+                  if (fileItem?.file)
+                    handleRemove(fileItem.file as File, "certificate");
                 }}
               />
             </div>
           ))}
       </section>
 
-      {/* Resume */}
+      {/* 🧾 Resume */}
       <section className="space-y-2">
         <Label>Resume / CV</Label>
         <FilePond
@@ -158,14 +173,16 @@ export default function DocumentsForm() {
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           ]}
-          onupdatefiles={(files) => {
-            const file = files[0]?.file;
-            if (file) handleUpload(file as File, "resume");
+          onaddfile={(_error, fileItem) => {
+            if (fileItem?.file) handleUpload(fileItem.file as File, "resume");
+          }}
+          onremovefile={(_error, fileItem) => {
+            if (fileItem?.file) handleRemove(fileItem.file as File, "resume");
           }}
         />
       </section>
 
-      {/* Recommendation Letters */}
+      {/* ✉️ Recommendation Letters */}
       <section className="space-y-2">
         <Label>Recommendation Letters</Label>
         <FilePond
@@ -173,15 +190,18 @@ export default function DocumentsForm() {
           allowMultiple={true}
           maxFiles={3}
           acceptedFileTypes={["application/pdf", "image/*"]}
-          onupdatefiles={(files) => {
-            files.forEach((f) =>
-              handleUpload(f.file as File, "recommendation_letter")
-            );
+          onaddfile={(_error, fileItem) => {
+            if (fileItem?.file)
+              handleUpload(fileItem.file as File, "recommendation_letter");
+          }}
+          onremovefile={(_error, fileItem) => {
+            if (fileItem?.file)
+              handleRemove(fileItem.file as File, "recommendation_letter");
           }}
         />
       </section>
 
-      {/* Personal Statement */}
+      {/* 📝 Personal Statement */}
       <section className="space-y-2">
         <Label>Personal Statement / Essay</Label>
         <FilePond
@@ -192,29 +212,36 @@ export default function DocumentsForm() {
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           ]}
-          onupdatefiles={(files) => {
-            const file = files[0]?.file;
-            if (file) handleUpload(file as File, "personal_statement");
+          onaddfile={(_error, fileItem) => {
+            if (fileItem?.file)
+              handleUpload(fileItem.file as File, "personal_statement");
+          }}
+          onremovefile={(_error, fileItem) => {
+            if (fileItem?.file)
+              handleRemove(fileItem.file as File, "personal_statement");
           }}
         />
       </section>
 
-      {/* Supporting Docs */}
+      {/* 📎 Supporting Documents */}
       <section className="space-y-2">
         <Label>Supporting Documents</Label>
         <FilePond
           name="supportingDocs"
           allowMultiple={true}
           acceptedFileTypes={["application/pdf", "image/*"]}
-          onupdatefiles={(files) => {
-            files.forEach((f) =>
-              handleUpload(f.file as File, "supporting_document")
-            );
+          onaddfile={(_error, fileItem) => {
+            if (fileItem?.file)
+              handleUpload(fileItem.file as File, "supporting_document");
+          }}
+          onremovefile={(_error, fileItem) => {
+            if (fileItem?.file)
+              handleRemove(fileItem.file as File, "supporting_document");
           }}
         />
       </section>
 
-      {/* Miscellaneous */}
+      {/* 📂 Miscellaneous */}
       <section className="space-y-2">
         <Label>Miscellaneous Documents</Label>
         <FilePond
@@ -226,13 +253,18 @@ export default function DocumentsForm() {
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           ]}
-          onupdatefiles={(files) => {
-            files.forEach((f) => handleUpload(f.file as File, "miscellaneous"));
+          onaddfile={(_error, fileItem) => {
+            if (fileItem?.file)
+              handleUpload(fileItem.file as File, "miscellaneous");
+          }}
+          onremovefile={(_error, fileItem) => {
+            if (fileItem?.file)
+              handleRemove(fileItem.file as File, "miscellaneous");
           }}
         />
       </section>
 
-      {/* Submit */}
+      {/* 🔘 Submit */}
       <div className="pt-4 flex justify-end gap-4">
         <Link
           href={isSubmitting ? "#" : "/profile/create/employment-info"}

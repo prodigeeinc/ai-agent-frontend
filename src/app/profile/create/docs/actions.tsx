@@ -95,37 +95,30 @@ export async function getDocuments() {
 /**
  * Delete a document (both from table and storage)
  */
-export async function deleteDocument(filePath: string) {
+export async function deleteDocument(fileName: string, category: string) {
   const supabase = await createClient();
 
   const {
     data: { user },
-    error: userErr,
   } = await supabase.auth.getUser();
-  if (userErr || !user) redirect("/login");
+  if (!user) return { error: "Unauthorized" };
 
-  // Remove from table
-  const { error: delDbErr } = await supabase
+  const path = `${user.id}/${category}/${fileName}`;
+
+  const { error } = await supabase.storage.from("documents").remove([path]);
+
+  if (error) {
+    console.error("Delete error:", error);
+    return { error: error.message };
+  }
+
+  // Optionally remove from your documents table too:
+  await supabase
     .from("documents")
     .delete()
-    .eq("file_path", filePath)
-    .eq("profile_id", user.id);
+    .eq("profile_id", user.id)
+    .eq("category", category)
+    .eq("file_name", fileName);
 
-  if (delDbErr) {
-    console.error("Delete DB record error:", delDbErr);
-    return { error: "Failed to delete record from database." };
-  }
-
-  // Remove from storage
-  const { error: delStorageErr } = await supabase.storage
-    .from("documents")
-    .remove([filePath]);
-
-  if (delStorageErr) {
-    console.error("Delete storage file error:", delStorageErr);
-    return { error: "Failed to delete file from storage." };
-  }
-
-  revalidatePath("/profile/create/documents");
-  return { success: true, message: "Document deleted successfully." };
+  return { success: true };
 }
