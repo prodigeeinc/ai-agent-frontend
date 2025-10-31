@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 // Dummy academic data (matches your academic form structure)
 const academicData = [
@@ -207,7 +208,19 @@ export default function DocumentsForm() {
       </div>
 
       {/* Submit */}
-      <div className="pt-4 flex justify-end">
+      <div className="pt-4 flex justify-end gap-4">
+        <Link
+          href={isSubmitting ? "#" : "/profile/create/employment-info"}
+          onClick={(e) => {
+            if (isSubmitting) e.preventDefault();
+          }}
+          className={`px-4 py-2 rounded ${
+            isSubmitting ? "pointer-events-none opacity-50" : "hover:underline"
+          }`}
+        >
+          Back
+        </Link>
+
         <Button type="submit" size={"lg"} disabled={isSubmitting}>
           {isSubmitting ? "Uploading..." : "Save & Continue"}
         </Button>

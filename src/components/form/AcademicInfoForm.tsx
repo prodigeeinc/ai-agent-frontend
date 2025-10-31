@@ -16,6 +16,7 @@ import {
 import { Trash2, Plus } from "lucide-react";
 
 import { saveAcademicInfo } from "@/app/profile/create/academic-info/actions";
+import Link from "next/link";
 
 type AcademicInfoFormProps = {
   defaultValues?: AcademicInfoFormValues["education"];
@@ -268,7 +269,19 @@ export default function AcademicInfoForm({
       </Button>
 
       {/* Submit */}
-      <div className="pt-4 flex justify-end">
+      <div className="pt-4 flex justify-end gap-4">
+        <Link
+          href={isSubmitting ? "#" : "/profile/create/personal-info"}
+          onClick={(e) => {
+            if (isSubmitting) e.preventDefault();
+          }}
+          className={`px-4 py-2 rounded ${
+            isSubmitting ? "pointer-events-none opacity-50" : "hover:underline"
+          }`}
+        >
+          Back
+        </Link>
+
         <Button type="submit" size="lg" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Save & Continue"}
         </Button>
