@@ -1,11 +1,12 @@
 import PersonalInfoForm from "@/components/form/PersonalInfoForm";
+import { getPersonalInfo } from "./action";
 
-function PersonalInfo() {
+export default async function PersonalInfoPage() {
+  const personalInfo = await getPersonalInfo();
+
   return (
-    <main>
-      <PersonalInfoForm />
+    <main className="p-6">
+      <PersonalInfoForm defaultValues={personalInfo || {}} />
     </main>
   );
 }
-
-export default PersonalInfo;

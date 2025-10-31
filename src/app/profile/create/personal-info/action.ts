@@ -20,6 +20,8 @@ export async function savePersonalInfo(values: PersonalInfoFormValues) {
 
   const data = parsed.data;
 
+  console.log({ data });
+
   const { error } = await supabase.from("profiles").upsert(
     {
       id: user.id,
@@ -46,4 +48,30 @@ export async function savePersonalInfo(values: PersonalInfoFormValues) {
 
   revalidatePath("/profile/create/personal-info");
   redirect("/profile/create/academic-info");
+}
+
+export async function getPersonalInfo() {
+  const supabase = await createClient();
+
+  // get current user
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabase.auth.getUser();
+
+  if (userErr || !user) redirect("/login");
+
+  // fetch profile (profiles.id === auth.users.id)
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error("getPersonalInfo error:", error);
+    return null;
+  }
+
+  return data;
 }

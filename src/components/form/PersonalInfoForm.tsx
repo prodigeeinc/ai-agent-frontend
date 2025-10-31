@@ -15,7 +15,11 @@ import {
 } from "@/components/ui/select";
 import { savePersonalInfo } from "@/app/profile/create/personal-info/action";
 
-export default function PersonalInfoForm() {
+export default function PersonalInfoForm({
+  defaultValues,
+}: {
+  defaultValues?: Partial<PersonalInfoFormValues>;
+}) {
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
@@ -30,6 +34,7 @@ export default function PersonalInfoForm() {
       city: "",
       email: "",
       phone: "",
+      ...defaultValues,
     },
   });
 
