@@ -1,11 +1,12 @@
+import { getEmploymentInfo } from "./actions";
 import EmploymentInfoForm from "@/components/form/EmploymentInfoForm";
 
-function PersonalInfo() {
+export default async function EmploymentInfoPage() {
+  const employmentData = await getEmploymentInfo();
+
   return (
     <main>
-      <EmploymentInfoForm />
+      <EmploymentInfoForm defaultValues={employmentData} />
     </main>
   );
 }
-
-export default PersonalInfo;

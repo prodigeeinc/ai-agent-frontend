@@ -14,22 +14,31 @@ import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Plus } from "lucide-react";
 import { saveEmploymentInfo } from "@/app/profile/create/employment-info/actions";
 
-export default function EmploymentInfoForm() {
+type EmploymentInfoFormProps = {
+  defaultValues?: EmploymentInfoFormValues["experience"];
+};
+
+export default function EmploymentInfoForm({
+  defaultValues,
+}: EmploymentInfoFormProps) {
   const form = useForm<EmploymentInfoFormValues>({
     resolver: zodResolver(employmentInfoSchema),
     defaultValues: {
-      experience: [
-        {
-          company_name: "",
-          position_title: "",
-          city: "",
-          country: "",
-          start_date: "",
-          end_date: "",
-          currently_working: false,
-          responsibilities: "",
-        },
-      ],
+      experience:
+        defaultValues && defaultValues.length > 0
+          ? defaultValues
+          : [
+              {
+                company_name: "",
+                position_title: "",
+                city: "",
+                country: "",
+                start_date: "",
+                end_date: "",
+                currently_working: false,
+                responsibilities: "",
+              },
+            ],
     },
   });
 

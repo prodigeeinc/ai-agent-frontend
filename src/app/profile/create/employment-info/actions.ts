@@ -58,5 +58,31 @@ export async function saveEmploymentInfo(values: EmploymentInfoFormValues) {
   }
 
   revalidatePath("/profile/create/employment-info");
-  redirect("/profile/create/next-step");
+  redirect("/profile/create/docs");
+}
+
+export async function getEmploymentInfo() {
+  const supabase = await createClient();
+
+  // Get the current user
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabase.auth.getUser();
+
+  if (userErr || !user) redirect("/login");
+
+  // Fetch all employment experience entries for this user's profile
+  const { data, error } = await supabase
+    .from("employment_experiences")
+    .select("*")
+    .eq("profile_id", user.id)
+    .order("start_date", { ascending: false });
+
+  if (error) {
+    console.error("getEmploymentInfo error:", error);
+    return [];
+  }
+
+  return data || [];
 }
