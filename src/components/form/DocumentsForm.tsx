@@ -17,6 +17,11 @@ import {
 } from "@/app/profile/create/docs/actions";
 import { toast } from "sonner";
 
+import {
+  academicInfoSchema,
+  type AcademicInfoFormValues,
+} from "@/lib/zodSchemas";
+
 registerPlugin(FilePondPluginFileValidateType);
 
 // ✅ Validation schema
@@ -32,33 +37,11 @@ const documentsSchema = z.object({
 
 type DocumentsFormValues = z.infer<typeof documentsSchema>;
 
-// ✅ Sample academic data (replace later with actual DB data)
-const academicData = [
-  {
-    university_name: "University of Ghana",
-    city: "Accra",
-    country: "Ghana",
-    level_of_study: "bachelor",
-    major: "Computer Science",
-    gpa: "3.8",
-    start_date: "2018-09-01",
-    end_date: "2022-07-30",
-    honors: "First Class Honors",
-  },
-  {
-    university_name: "Ashesi University",
-    city: "Berekuso",
-    country: "Ghana",
-    level_of_study: "master",
-    major: "Data Science",
-    gpa: "3.9",
-    start_date: "2023-01-01",
-    end_date: "2026-05-15",
-    honors: "",
-  },
-];
+type DocumentsFormProps = {
+  academicInfo: z.infer<typeof academicInfoSchema>["education"];
+};
 
-export default function DocumentsForm() {
+export default function DocumentsForm({ academicInfo }: DocumentsFormProps) {
   const {
     handleSubmit,
     formState: { isSubmitting },
@@ -122,7 +105,7 @@ export default function DocumentsForm() {
       {/* 📚 Transcripts */}
       <section className="space-y-4">
         <h2 className="text-lg font-medium">Academic Transcripts</h2>
-        {academicData.map((school, i) => (
+        {academicInfo.map((school, i) => (
           <div key={i} className="grid gap-2">
             <Label>{school.university_name} Transcript</Label>
             <FilePond
@@ -145,7 +128,7 @@ export default function DocumentsForm() {
       {/* 🎓 Certificates */}
       <section className="space-y-4">
         <h2 className="text-lg font-medium">Degree Certificates</h2>
-        {academicData
+        {academicInfo
           .filter((school) => isCompleted(school.end_date))
           .map((school, i) => (
             <div key={i} className="grid gap-2">

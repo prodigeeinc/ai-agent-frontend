@@ -1,9 +1,12 @@
 import DocumentsForm from "@/components/form/DocumentsForm";
+import { getAcademicInfo } from "../academic-info/actions";
 
-function PersonalInfo() {
+async function PersonalInfo() {
+  const academicInfo = await getAcademicInfo();
+
   return (
     <main>
-      <DocumentsForm />
+      <DocumentsForm academicInfo={academicInfo || []} />
     </main>
   );
 }
