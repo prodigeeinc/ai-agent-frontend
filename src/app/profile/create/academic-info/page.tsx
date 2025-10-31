@@ -1,11 +1,12 @@
 import AcademicInfoForm from "@/components/form/AcademicInfoForm";
+import { getAcademicInfo } from "./actions";
 
-function AcademicInfo() {
+export default async function AcademicInfoPage() {
+  const academicInfo = await getAcademicInfo();
+
   return (
-    <main>
-      <AcademicInfoForm />
+    <main className="p-6">
+      <AcademicInfoForm defaultValues={academicInfo || []} />
     </main>
   );
 }
-
-export default AcademicInfo;

@@ -17,23 +17,32 @@ import { Trash2, Plus } from "lucide-react";
 
 import { saveAcademicInfo } from "@/app/profile/create/academic-info/actions";
 
-export default function AcademicInfoForm() {
+type AcademicInfoFormProps = {
+  defaultValues?: AcademicInfoFormValues["education"];
+};
+
+export default function AcademicInfoForm({
+  defaultValues,
+}: AcademicInfoFormProps) {
   const form = useForm<AcademicInfoFormValues>({
     resolver: zodResolver(academicInfoSchema),
     defaultValues: {
-      education: [
-        {
-          university_name: "",
-          city: "",
-          country: "",
-          level_of_study: "",
-          major: "",
-          gpa: "",
-          start_date: "",
-          end_date: "",
-          honors: "",
-        },
-      ],
+      education:
+        defaultValues && defaultValues.length > 0
+          ? defaultValues
+          : [
+              {
+                university_name: "",
+                city: "",
+                country: "",
+                level_of_study: "",
+                major: "",
+                gpa: "",
+                start_date: "",
+                end_date: "",
+                honors: "",
+              },
+            ],
     },
   });
 
@@ -52,8 +61,7 @@ export default function AcademicInfoForm() {
         console.error(result);
         // Optionally show toast error
       }
-      // redirect or toast
-      console.log("Employment info saved!");
+      console.log("Academic info saved!");
     } catch (err) {
       console.error(err);
     }
@@ -75,7 +83,6 @@ export default function AcademicInfoForm() {
           key={field.id}
           className="relative border rounded-lg p-5 space-y-5 bg-muted/20"
         >
-          {/* Delete button */}
           {fields.length > 1 && (
             <Button
               type="button"
@@ -171,6 +178,7 @@ export default function AcademicInfoForm() {
           <div className="grid gap-2">
             <Label htmlFor={`level_of_study-${index}`}>Level of Study *</Label>
             <Select
+              defaultValue={field.level_of_study}
               onValueChange={(value) =>
                 setValue(`education.${index}.level_of_study`, value)
               }

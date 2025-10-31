@@ -37,7 +37,7 @@ export async function saveAcademicInfo(values: AcademicInfoFormValues) {
   }));
 
   // Clear existing records for this user first (optional but clean UX)
-  await supabase.from("academic_records").delete().eq("profile_id", user.id);
+  await supabase.from("academic_info").delete().eq("profile_id", user.id);
 
   // Insert new data
   const { error } = await supabase
@@ -51,4 +51,30 @@ export async function saveAcademicInfo(values: AcademicInfoFormValues) {
 
   revalidatePath("/profile/create/academic-info");
   redirect("/profile/create/employment-info");
+}
+
+export async function getAcademicInfo() {
+  const supabase = await createClient();
+
+  // Get the current user
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabase.auth.getUser();
+
+  if (userErr || !user) redirect("/login");
+
+  // Fetch all academic info entries for this user's profile
+  const { data, error } = await supabase
+    .from("academic_info")
+    .select("*")
+    .eq("profile_id", user.id)
+    .order("start_date", { ascending: false });
+
+  if (error) {
+    console.error("getAcademicInfo error:", error);
+    return [];
+  }
+
+  return data || [];
 }
